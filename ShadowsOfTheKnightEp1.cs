@@ -31,7 +31,10 @@ class Player
             string bombDir = Console.ReadLine(); // the direction of the bombs from batman's current location (U, UR, R, DR, D, DL, L or UL)
             
             Console.Error.WriteLine($"H={H} W={W}");
-            Console.Error.WriteLine($"X0={X0} Y0={Y0} Dir={bombDir}");
+            Console.Error.WriteLine($"X Position={x.Value} Y Position ={y.Value} ");
+            Console.Error.WriteLine($"X LowerBound={x.LowerBound} X HigherBound={x.HigherBound} ");
+            Console.Error.WriteLine($"Y LowerBound={y.LowerBound} y HigherBound={y.HigherBound} ");
+            Console.Error.WriteLine($"Dir={bombDir}");
             
             // Write an action using Console.WriteLine()
             // To debug: Console.Error.WriteLine("Debug messages...");
@@ -67,13 +70,13 @@ class BatCoordinate
 
     public void Decrease()
     {
-        HigherBound = Value;
-        Value = Value - (int)Math.Floor((HigherBound - LowerBound) / 2d) - 1;
+        HigherBound = Value - 1;
+        Value = Value - (int)((HigherBound - LowerBound) / 2f) - 1;
     }
 
     public void Increase()
     {
-        LowerBound = Value;
-        Value = Value + (int)Math.Ceiling((HigherBound - LowerBound) / 2d);
+        LowerBound = Value + 1;
+        Value = Value + (int)((HigherBound - LowerBound) / 2f) + 1;
     }
 }
