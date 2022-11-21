@@ -36,8 +36,6 @@ class Player
             Console.Error.WriteLine($"Y LowerBound={y.LowerBound} y HigherBound={y.HigherBound} ");
             Console.Error.WriteLine($"Dir={bombDir}");
             
-            // Write an action using Console.WriteLine()
-            // To debug: Console.Error.WriteLine("Debug messages...");
             if(bombDir.Contains("R"))
                 x.Increase();
             if(bombDir.Contains("L"))
@@ -57,9 +55,9 @@ class Player
 
 class BatCoordinate
 {
-    public int Value {get;set;}
-    public int LowerBound {get;set;}
-    public int HigherBound {get;set;}
+    public int Value {get; private set;}
+    public int LowerBound {get; private set;}
+    public int HigherBound {get; private set;}
 
     public BatCoordinate(int size, int value)
     {
@@ -71,12 +69,12 @@ class BatCoordinate
     public void Decrease()
     {
         HigherBound = Value - 1;
-        Value = Value - (int)((HigherBound - LowerBound) / 2f) - 1;
+        Value -= (int)((HigherBound - LowerBound) / 2f) - 1;
     }
 
     public void Increase()
     {
         LowerBound = Value + 1;
-        Value = Value + (int)((HigherBound - LowerBound) / 2f) + 1;
+        Value += (int)((HigherBound - LowerBound) / 2f) + 1;
     }
 }
