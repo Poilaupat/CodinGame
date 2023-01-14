@@ -1,0 +1,15 @@
+/home/ruben/dev/CodinGame/bin/Debug/net7.0/CodinGame
+/home/ruben/dev/CodinGame/bin/Debug/net7.0/CodinGame.deps.json
+/home/ruben/dev/CodinGame/bin/Debug/net7.0/CodinGame.runtimeconfig.json
+/home/ruben/dev/CodinGame/bin/Debug/net7.0/CodinGame.dll
+/home/ruben/dev/CodinGame/bin/Debug/net7.0/CodinGame.pdb
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.csproj.AssemblyReference.cache
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.GeneratedMSBuildEditorConfig.editorconfig
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.AssemblyInfoInputs.cache
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.AssemblyInfo.cs
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.csproj.CoreCompileInputs.cache
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.dll
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/refint/CodinGame.dll
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.pdb
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/CodinGame.genruntimeconfig.cache
+/home/ruben/dev/CodinGame/obj/Debug/net7.0/ref/CodinGame.dll
