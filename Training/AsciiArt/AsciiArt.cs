@@ -1,4 +1,4 @@
-namespace AsciiArt
+namespace Training.AsciiArt
 {
     using Console = CodinGameEmulator.Console;
 

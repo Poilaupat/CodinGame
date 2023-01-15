@@ -1,4 +1,4 @@
-namespace Unary
+namespace Training.Unary
 {
     using Console = CodinGameEmulator.Console;
     

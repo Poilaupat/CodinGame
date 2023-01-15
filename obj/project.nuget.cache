@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "1IMLFN2A/QR9sZECeV0ybXGaHCVJ1r+NdcAVIrCQAASnfXk8Z1K1gg3DIoG0AFeE9Y3n8kL1HIONgqxqSS7jRg==",
+  "dgSpecHash": "GUYgRgK1SlvW6E8ljX7VcgNbfR3dz9e3WBXft+3EY1YTLNaDwFCfvxiOJ6wxk4kDUfr/5Xp9y2MyMKJ8pEYVIA==",
   "success": true,
-  "projectFilePath": "/home/ruben/dev/CodinGame/CodinGame.csproj",
+  "projectFilePath": "C:\\Users\\Ruben\\Documents\\Dev\\CodinGame\\CodinGame.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

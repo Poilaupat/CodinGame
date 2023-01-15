@@ -1,4 +1,4 @@
-namespace ThereIsNoSpoonEp1
+namespace Training.ThereIsNoSpoonEp1
 {
     using Console = CodinGameEmulator.Console;
 

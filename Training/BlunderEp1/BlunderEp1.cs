@@ -1,4 +1,4 @@
-namespace BlunderEp1
+namespace Training.BlunderEp1
 {
     using Console = CodinGameEmulator.Console;
 

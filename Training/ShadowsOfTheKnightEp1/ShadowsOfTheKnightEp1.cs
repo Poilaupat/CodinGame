@@ -1,4 +1,4 @@
-namespace ShadowsOfTheKnightEp1
+namespace Training.ShadowsOfTheKnightEp1
 {
     using Console = CodinGameEmulator.Console;
 

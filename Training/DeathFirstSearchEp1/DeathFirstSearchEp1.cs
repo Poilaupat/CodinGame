@@ -1,4 +1,4 @@
-namespace DeathFirstSearchEp1
+namespace Training.DeathFirstSearchEp1
 {
     using Console = CodinGameEmulator.Console;
 
@@ -23,29 +23,29 @@ namespace DeathFirstSearchEp1
             int edgeCount = int.Parse(inputs[1]); // the number of links
             int gatewayCount = int.Parse(inputs[2]); // the number of exit gateways
 
-            HashSet<Vertice> vertices = new HashSet<Vertice>();
-            HashSet<Tuple<Vertice, Vertice>> edges = new HashSet<Tuple<Vertice, Vertice>>();
+            HashSet<Vertex> vertices = new HashSet<Vertex>();
+            HashSet<Tuple<Vertex, Vertex>> edges = new HashSet<Tuple<Vertex, Vertex>>();
             for (int i = 0; i < edgeCount; i++)
             {
                 inputs = Console.ReadLine().Split(' ');
                 int id1 = int.Parse(inputs[0]);
                 int id2 = int.Parse(inputs[1]);
 
-                Vertice? v1 = vertices.SingleOrDefault(x => x.Id == id1);
+                Vertex? v1 = vertices.SingleOrDefault(x => x.Id == id1);
                 if (v1 is null)
                 {
-                    v1 = new Vertice(id1);
+                    v1 = new Vertex(id1);
                     vertices.Add(v1);
                 }
 
-                Vertice? v2 = vertices.SingleOrDefault(x => x.Id == id2);
+                Vertex? v2 = vertices.SingleOrDefault(x => x.Id == id2);
                 if (v2 is null)
                 {
-                    v2 = new Vertice(id2);
+                    v2 = new Vertex(id2);
                     vertices.Add(v2);
                 }
 
-                edges.Add(new Tuple<Vertice, Vertice>(v1, v2));
+                edges.Add(new Tuple<Vertex, Vertex>(v1, v2));
             }
 
             for (int i = 0; i < gatewayCount; i++)
@@ -54,7 +54,7 @@ namespace DeathFirstSearchEp1
                 vertices.Single(v => v.Id == idg).IsGateway = true;
             }
 
-            Graph<Vertice> graph = new Graph<Vertice>(vertices, edges);
+            Graph<Vertex> graph = new Graph<Vertex>(vertices, edges);
 
 
             // game loop
@@ -62,7 +62,7 @@ namespace DeathFirstSearchEp1
             {
                 // The node on which the Bobnet agent is positioned this turn
                 int agentId = int.Parse(Console.ReadLine());
-                Vertice agent = graph
+                Vertex agent = graph
                     .AdjacencyList
                     .Keys
                     .Single(v => v.Id == agentId);
@@ -74,7 +74,7 @@ namespace DeathFirstSearchEp1
 
 
                 //Finding the edge to cut...
-                Vertice? verticeToCut = null;
+                Vertex? verticeToCut = null;
 
                 // Searching all accessibles positions from the agent current position
                 var accessibles = GraphTraversalAlgorithms.BreadthFirst(graph, agent);
@@ -92,7 +92,7 @@ namespace DeathFirstSearchEp1
                     if (accessibles.Contains(gateway))
                     {
                         var path = shortestPathFunc(gateway);
-                        paths.Add(new Path { Origin = agent, Target = gateway, Steps = path });
+                        paths.Add(new Path(agent, gateway, path ));
                     }
                 }
 
@@ -191,12 +191,12 @@ namespace DeathFirstSearchEp1
         }
     }
 
-    public class Vertice
+    public class Vertex
     {
         public int Id { get; }
         public bool IsGateway { get; set; }
 
-        public Vertice(int id)
+        public Vertex(int id)
         {
             Id = id;
             IsGateway = false;
@@ -209,7 +209,7 @@ namespace DeathFirstSearchEp1
 
         public override bool Equals(object? obj)
         {
-            return obj == this || (obj is Vertice vertice && vertice.Id == this.Id);
+            return obj == this || (obj is Vertex vertice && vertice.Id == this.Id);
         }
 
         public override int GetHashCode()
@@ -294,9 +294,16 @@ namespace DeathFirstSearchEp1
 
     public class Path
     {
-        public Vertice? Origin { get; set; }
-        public Vertice? Target { get; set; }
-        public IEnumerable<Vertice>? Steps { get; set; }
+        public Vertex Origin { get; set; }
+        public Vertex Target { get; set; }
+        public IEnumerable<Vertex> Steps { get; set; }
         public int Length { get { return Steps?.Count() ?? 0; } }
+
+        public Path(Vertex origin, Vertex target, IEnumerable<Vertex> steps)
+        {
+            Origin = origin;
+            Target = target;
+            Steps = steps;
+        }
     }
 }

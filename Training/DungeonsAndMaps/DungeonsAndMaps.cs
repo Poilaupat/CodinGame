@@ -1,4 +1,4 @@
-namespace DungeonsAndMaps
+namespace Training.DungeonsAndMaps
 {
     using Console = CodinGameEmulator.Console;
     
