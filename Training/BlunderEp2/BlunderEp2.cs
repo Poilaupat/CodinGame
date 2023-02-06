@@ -21,17 +21,15 @@ namespace Training.BlunderEp2
             var graph = BuildGraph();
 
             //Displays graph
-            foreach (var node in graph.AdjacencyList)
-            {
-                Console.Error.WriteLine($"{node.Key.Id} {node.Key.Weight} {node.Value.FirstOrDefault()?.Neighbor.Id} {node.Value.LastOrDefault()?.Neighbor.Id}");
-            }
+            // foreach (var node in graph.AdjacencyList)
+            // {
+            //     Console.Error.WriteLine($"{node.Key.Id} {node.Key.Weight} {node.Value.FirstOrDefault()?.Neighbor.Id} {node.Value.LastOrDefault()?.Neighbor.Id}");
+            // }
 
-            // Write an answer using Console.WriteLine()
-            // To debug: Console.Error.WriteLine("Debug messages...");
-            //graph.DjikstraInverse(graph.AdjacencyList.Keys.First());
-            graph.Djikstra(graph.AdjacencyList.Keys.First());
+            var start = graph.AdjacencyList.Keys.First();
+            var res = graph.DjikstraInverse(start, start.Weight);
 
-            Console.WriteLine("answer");
+            Console.WriteLine(res.costs.SingleOrDefault(x => x.Key.Id == -1).Value);
         }
 
         static Graph<Room> BuildGraph()
@@ -308,6 +306,38 @@ namespace Training.BlunderEp2
             return (costs: costs, predecessors: predecessors);
         }
 
+        public (Dictionary<V, double> costs, Dictionary<V, V> predecessors) DjikstraInverse(V start, double initialCost = 0)
+        {
+            PriorityQueue<V, double> spt = new PriorityQueue<V, double>();
+            Dictionary<V, double> costs = new Dictionary<V, double>();
+            Dictionary<V, V> predecessors = new Dictionary<V, V>();
+
+            spt.Enqueue(start, initialCost);
+            costs[start] = initialCost;
+            predecessors[start] = start;
+
+            while (spt.Count > 0)
+            {
+                V vertex = spt.Dequeue();
+
+                foreach (var edge in AdjacencyList[vertex])
+                {
+                    //if(!predecessors.ContainsKey(edge.Neighbor))
+                    {
+                        double cost = costs[vertex] + edge.Cost;
+                        if (!costs.ContainsKey(edge.Neighbor) || cost > costs[edge.Neighbor])
+                        {
+                            costs[edge.Neighbor] = cost;
+                            predecessors[edge.Neighbor] = vertex;
+                            spt.Enqueue(edge.Neighbor, cost);
+                        }
+                    }
+                }
+            }
+
+            return (costs: costs, predecessors: predecessors);
+        }
+
         #endregion
     }
 
@@ -340,5 +370,4 @@ namespace Training.BlunderEp2
             return HashCode.Combine(Vertex, Neighbor);
         }
     }
-
 }
