@@ -23,11 +23,13 @@ namespace Training.BlunderEp2
             //Displays graph
             foreach (var node in graph.AdjacencyList)
             {
-                Console.Error.WriteLine($"{node.Key.Id} {node.Key.Weight} {node.Value.First().Id} {node.Value.Last().Id}");
+                Console.Error.WriteLine($"{node.Key.Id} {node.Key.Weight} {node.Value.FirstOrDefault()?.Neighbor.Id} {node.Value.LastOrDefault()?.Neighbor.Id}");
             }
 
             // Write an answer using Console.WriteLine()
             // To debug: Console.Error.WriteLine("Debug messages...");
+            //graph.DjikstraInverse(graph.AdjacencyList.Keys.First());
+            graph.Djikstra(graph.AdjacencyList.Keys.First());
 
             Console.WriteLine("answer");
         }
@@ -46,22 +48,24 @@ namespace Training.BlunderEp2
             var exit = new Room(-1, 0);
             vertices.Add(exit);
 
-            List<Tuple<Room, Room>> edges = new List<Tuple<Room, Room>>();
+            List<Edge<Room>> edges = new List<Edge<Room>>();
 
             edges.AddRange(roomData
-                .Select(x => new Tuple<Room, Room>
-                (
-                    vertices.Single(y => y.Id == Convert.ToInt32(x[0])),
-                    x[2] == "E" ? exit : vertices.Single(y => y.Id == Convert.ToInt32(x[2]))
-                ))
+                .Select(x => new
+                {
+                    Vertex = vertices.Single(y => y.Id == Convert.ToInt32(x[0])),
+                    Neighbor = x[2] == "E" ? exit : vertices.Single(y => y.Id == Convert.ToInt32(x[2]))
+                })
+                .Select(x => new Edge<Room>(x.Vertex, x.Neighbor, x.Neighbor.Weight))
             );
 
             edges.AddRange(roomData
-                .Select(x => new Tuple<Room, Room>
-                (
-                    vertices.Single(y => y.Id == Convert.ToInt32(x[0])),
-                    x[3] == "E" ? exit : vertices.Single(y => y.Id == Convert.ToInt32(x[3]))
-                ))
+                .Select(x => new
+                {
+                    Vertex = vertices.Single(y => y.Id == Convert.ToInt32(x[0])),
+                    Neighbor = x[3] == "E" ? exit : vertices.Single(y => y.Id == Convert.ToInt32(x[3]))
+                })
+                .Select(x => new Edge<Room>(x.Vertex, x.Neighbor, x.Neighbor.Weight))
             );
 
             return new Graph<Room>(vertices, edges);
@@ -96,136 +100,174 @@ namespace Training.BlunderEp2
         }
     }
 
-    class Graph<T> where T : class
+    class Graph<V> where V : class
     {
         public Graph() { }
 
-        public Graph(IEnumerable<T> vertices, IEnumerable<Tuple<T, T>> edges)
+        public Graph(IEnumerable<V> vertices, IEnumerable<Edge<V>> edges)
         {
             foreach (var vertex in vertices)
                 AddVertex(vertex);
 
             foreach (var edge in edges)
-                AddEdge(edge.Item1, edge.Item2);
+                AddEdge(edge);
         }
 
-        public Dictionary<T, HashSet<T>> AdjacencyList { get; } = new Dictionary<T, HashSet<T>>();
+        public Dictionary<V, HashSet<Edge<V>>> AdjacencyList { get; } = new Dictionary<V, HashSet<Edge<V>>>();
 
-        public void AddVertex(T vertex)
+        public bool ContainsVertex(V vertex)
         {
-            if (!AdjacencyList.Keys.Contains(vertex))
-                AdjacencyList[vertex] = new HashSet<T>();
+            return AdjacencyList.ContainsKey(vertex);
         }
 
-        public void RemoveVertex(T vertex)
+        public Edge<V>? GetEdge(V v1, V v2)
         {
-            if (AdjacencyList.Keys.Contains(vertex))
+            if (ContainsVertex(v1) && ContainsVertex(v2))
+            {
+                return AdjacencyList[v1].SingleOrDefault(e => e.Neighbor.Equals(v2));
+            }
+            return null;
+        }
+
+        public void AddVertex(V vertex)
+        {
+            if (!ContainsVertex(vertex))
+                AdjacencyList[vertex] = new HashSet<Edge<V>>();
+        }
+
+        public void RemoveVertex(V vertex)
+        {
+            if (ContainsVertex(vertex))
                 AdjacencyList.Remove(vertex);
 
-            foreach (var edgeVertices in AdjacencyList.Values)
-                foreach (var edgeVertex in edgeVertices)
-                {
-                    if (edgeVertex.Equals(vertex))
-                    {
-                        edgeVertices.Remove(edgeVertex);
-                        break;
-                    }
-                }
-        }
 
-        public void AddEdge(T v1, T v2)
-        {
-            if (AdjacencyList.ContainsKey(v1) && AdjacencyList.ContainsKey(v2))
+            foreach (var otherVertex in AdjacencyList.Where(kvp => !kvp.Key.Equals(vertex)))
             {
-                if (!AdjacencyList[v1].Contains(v2))
-                    AdjacencyList[v1].Add(v2);
-                if (!AdjacencyList[v2].Contains(v1))
-                    AdjacencyList[v2].Add(v1);
+                var edge = otherVertex.Value.SingleOrDefault(e => e.Neighbor.Equals(vertex));
+                if (edge is not null)
+                    otherVertex.Value.Remove(edge);
             }
         }
 
-        public void RemoveEdge(T v1, T v2)
+        public void AddEdge(Edge<V> edge)
         {
-            if (AdjacencyList.ContainsKey(v1) && AdjacencyList.ContainsKey(v2))
+            if (ContainsVertex(edge.Vertex) &&
+                ContainsVertex(edge.Neighbor) &&
+                !AdjacencyList[edge.Vertex].Any(e => e.Equals(edge)))
             {
-                if (AdjacencyList[v1].Contains(v2))
-                    AdjacencyList[v1].Remove(v2);
-
-                if (AdjacencyList[v2].Contains(v1))
-                    AdjacencyList[v2].Remove(v1);
+                AdjacencyList[edge.Vertex].Add(edge);
             }
         }
 
-        public Graph<T> Clone()
+        public void RemoveEdge(V v1, V v2, bool deleteTwoWays)
         {
-            return new Graph<T>(
+            var edge = GetEdge(v1, v2);
+            if (edge is not null)
+            {
+                AdjacencyList[v1].Remove(edge);
+            }
+            edge = GetEdge(v2, v1);
+            if (deleteTwoWays && edge is not null)
+            {
+                AdjacencyList[v2].Remove(edge);
+            }
+        }
+
+        public Graph<V> Clone()
+        {
+            return new Graph<V>(
                 this.AdjacencyList.Keys,
-                this.AdjacencyList.SelectMany(x => x.Value.Select(y => new Tuple<T, T>(x.Key, y)))
-            );
+                this.AdjacencyList.SelectMany(x => x.Value));
         }
 
         #region Graph Traverval Algorithms
 
-        public HashSet<T> BreadthFirst(T start) 
+        public Dictionary<V, V> DepthFirstSearch(V start)
         {
-            var visited = new HashSet<T>();
+            var visited = new HashSet<V>();
+            Dictionary<V, V> predecessors = new Dictionary<V, V>();
 
-            if (!this.AdjacencyList.ContainsKey(start))
-                return visited;
-
-            var queue = new Queue<T>();
-            queue.Enqueue(start);
-
-            while (queue.Count > 0)
+            if (this.ContainsVertex(start))
             {
-                var vertex = queue.Dequeue();
+                var stack = new Stack<V>();
+                stack.Push(start);
 
-                if (visited.Contains(vertex))
-                    continue;
-
-                visited.Add(vertex);
-
-                foreach (var neighbor in this.AdjacencyList[vertex])
+                while (stack.Count() > 0)
                 {
-                    if (!visited.Contains(neighbor))
+                    var vertex = stack.Pop();
+                    if (!visited.Contains(vertex))
                     {
-                        queue.Enqueue(neighbor);
+                        visited.Add(vertex);
+                        foreach (var edge in AdjacencyList[vertex])
+                        {
+                            predecessors[edge.Neighbor] = vertex;
+                            stack.Push(edge.Neighbor);
+                        }
                     }
                 }
             }
 
-            return visited;
+            return predecessors;
         }
 
-        public Func<T, IEnumerable<T>> ShortestPathFunction(T start)
+        public Dictionary<V, V> BreadthFirstSearch(V start)
         {
-            var previous = new Dictionary<T, T>();
+            var visited = new HashSet<V>();
+            Dictionary<V, V> predecessors = new Dictionary<V, V>();
 
-            var queue = new Queue<T>();
+            if (this.ContainsVertex(start))
+            {
+                var queue = new Queue<V>();
+                queue.Enqueue(start);
+                visited.Add(start);
+
+                while (queue.Count > 0)
+                {
+                    var vertex = queue.Dequeue();
+
+                    foreach (var edge in this.AdjacencyList[vertex])
+                    {
+                        if (!visited.Contains(edge.Neighbor))
+                        {
+                            predecessors[edge.Neighbor] = vertex;
+                            queue.Enqueue(edge.Neighbor);
+                        }
+                    }
+                }
+            }
+
+            return predecessors;
+        }
+
+        public Func<V, IEnumerable<V>> ShortestPathFunction(V start)
+        {
+            var predecessors = new Dictionary<V, V>();
+
+            var queue = new Queue<V>();
             queue.Enqueue(start);
 
             while (queue.Count > 0)
             {
                 var vertex = queue.Dequeue();
-                foreach (var neighbor in this.AdjacencyList[vertex])
+                foreach (var edge in this.AdjacencyList[vertex])
                 {
-                    if (previous.ContainsKey(neighbor))
+                    if (predecessors.ContainsKey(edge.Neighbor))
                         continue;
 
-                    previous[neighbor] = vertex;
-                    queue.Enqueue(neighbor);
+                    predecessors[edge.Neighbor] = vertex;
+                    queue.Enqueue(edge.Neighbor);
                 }
             }
 
-            Func<T, IEnumerable<T>> shortestPath = v =>
+            Func<V, IEnumerable<V>> shortestPath = v =>
             {
-                var path = new List<T> { };
+                var path = new List<V> { };
 
                 var current = v;
                 while (!current.Equals(start))
                 {
                     path.Add(current);
-                    current = previous[current];
+                    current = predecessors[current];
                 };
 
                 path.Add(start);
@@ -236,8 +278,67 @@ namespace Training.BlunderEp2
 
             return shortestPath;
         }
+
+        public (Dictionary<V, double> costs, Dictionary<V, V> predecessors) Djikstra(V start, double initialCost = 0)
+        {
+            PriorityQueue<V, double> spt = new PriorityQueue<V, double>();
+            Dictionary<V, double> costs = new Dictionary<V, double>();
+            Dictionary<V, V> predecessors = new Dictionary<V, V>();
+
+            spt.Enqueue(start, initialCost);
+            costs[start] = initialCost;
+            predecessors[start] = start;
+
+            while (spt.Count > 0)
+            {
+                V vertex = spt.Dequeue();
+
+                foreach (var edge in AdjacencyList[vertex])
+                {
+                    double cost = costs[vertex] + edge.Cost;
+                    if (!costs.ContainsKey(edge.Neighbor) || cost < costs[edge.Neighbor])
+                    {
+                        costs[edge.Neighbor] = cost;
+                        predecessors[edge.Neighbor] = vertex;
+                        spt.Enqueue(edge.Neighbor, cost);
+                    }
+                }
+            }
+
+            return (costs: costs, predecessors: predecessors);
+        }
+
+        #endregion
     }
 
-    #endregion
-}
 
+    class Edge<V> where V : class
+    {
+        public V Vertex { get; }
+        public V Neighbor { get; }
+        public double Cost { get; }
+
+        public Edge(V vertex, V neighbor, double cost)
+        {
+            Vertex = vertex;
+            Neighbor = neighbor;
+            Cost = cost;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return this == obj ||
+                (
+                    obj is Edge<V> edge &&
+                    this.Vertex.Equals(edge.Vertex) &&
+                    this.Neighbor.Equals(edge.Neighbor)
+                );
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Vertex, Neighbor);
+        }
+    }
+
+}
