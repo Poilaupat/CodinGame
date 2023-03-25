@@ -18,7 +18,7 @@ namespace CodinGameEmulator
         {
             _StandardInputData = new Queue<string>(File.ReadAllLines(path));
         }
-        public static void CheckOutputData(string testname, string path)
+        public static void CheckOutputData(string testname, string path, long elapsedTime = 0)
         {
             FlushBuffer();
             
@@ -27,11 +27,11 @@ namespace CodinGameEmulator
                 var outputLine = _StandardOutputData.Dequeue();
                 if (outputLine is null || !outputLine.Equals(fileLine))
                 {
-                    WriteSystemConsole($"Test <{testname}> failed. Expected <{fileLine}> but was <{outputLine ?? "null"}>", System.ConsoleColor.Red);
+                    WriteSystemConsole($"Test <{testname}> failed. Expected <{fileLine}> but was <{outputLine ?? "null"}>. Elapsed time {elapsedTime}ms", System.ConsoleColor.Red);
                     return;
                 }
             }
-            WriteSystemConsole($"Test <{testname}> ok", System.ConsoleColor.Green);
+            WriteSystemConsole($"Test <{testname}> ok in {elapsedTime}ms", System.ConsoleColor.Green);
         }
         public static string ReadLine()
         {

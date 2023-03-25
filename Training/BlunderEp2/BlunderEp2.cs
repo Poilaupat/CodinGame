@@ -27,7 +27,8 @@ namespace Training.BlunderEp2
             // }
 
             var start = graph.AdjacencyList.Keys.First();
-            var res = graph.DjikstraInverse(start, start.Weight);
+            //var res = graph.DjikstraInverse(start, start.Money);
+            var res = graph.DjikstraInverse2(start, start.Money);
 
             Console.WriteLine(res.costs.SingleOrDefault(x => x.Key.Id == -1).Value);
         }
@@ -54,7 +55,7 @@ namespace Training.BlunderEp2
                     Vertex = vertices.Single(y => y.Id == Convert.ToInt32(x[0])),
                     Neighbor = x[2] == "E" ? exit : vertices.Single(y => y.Id == Convert.ToInt32(x[2]))
                 })
-                .Select(x => new Edge<Room>(x.Vertex, x.Neighbor, x.Neighbor.Weight))
+                .Select(x => new Edge<Room>(x.Vertex, x.Neighbor, x.Neighbor.Money))
             );
 
             edges.AddRange(roomData
@@ -63,22 +64,22 @@ namespace Training.BlunderEp2
                     Vertex = vertices.Single(y => y.Id == Convert.ToInt32(x[0])),
                     Neighbor = x[3] == "E" ? exit : vertices.Single(y => y.Id == Convert.ToInt32(x[3]))
                 })
-                .Select(x => new Edge<Room>(x.Vertex, x.Neighbor, x.Neighbor.Weight))
+                .Select(x => new Edge<Room>(x.Vertex, x.Neighbor, x.Neighbor.Money))
             );
 
             return new Graph<Room>(vertices, edges);
         }
     }
 
-    class Room
+    class Room : IVertex
     {
         public int Id { get; set; }
-        public int Weight { get; set; }
+        public int Money { get; set; }
 
-        public Room(int id, int weight)
+        public Room(int id, int money)
         {
             Id = id;
-            Weight = weight;
+            Money = money;
         }
 
         public override bool Equals(object? obj)
@@ -94,11 +95,11 @@ namespace Training.BlunderEp2
 
         public override string ToString()
         {
-            return $"Id:{Id}({Weight})";
+            return $"Id:{Id}({Money})";
         }
     }
 
-    class Graph<V> where V : class
+    class Graph<V> where V : IVertex
     {
         public Graph() { }
 
@@ -322,15 +323,47 @@ namespace Training.BlunderEp2
 
                 foreach (var edge in AdjacencyList[vertex])
                 {
-                    //if(!predecessors.ContainsKey(edge.Neighbor))
+                    double cost = costs[vertex] + edge.Cost;
+                    if (!costs.ContainsKey(edge.Neighbor) || cost > costs[edge.Neighbor])
                     {
-                        double cost = costs[vertex] + edge.Cost;
-                        if (!costs.ContainsKey(edge.Neighbor) || cost > costs[edge.Neighbor])
-                        {
-                            costs[edge.Neighbor] = cost;
-                            predecessors[edge.Neighbor] = vertex;
-                            spt.Enqueue(edge.Neighbor, cost);
-                        }
+                        costs[edge.Neighbor] = cost;
+                        predecessors[edge.Neighbor] = vertex;
+                        spt.Enqueue(edge.Neighbor, cost);
+                    }
+                }
+            }
+
+            return (costs: costs, predecessors: predecessors);
+        }
+
+        public (Dictionary<V, int> costs, Dictionary<V, V> predecessors) DjikstraInverse2(V start, int initialCost = 0)
+        {
+            SpeedQueue<V> spt = new SpeedQueue<V>();
+            Dictionary<V, int> costs = new Dictionary<V, int>();
+            Dictionary<V, V> predecessors = new Dictionary<V, V>();
+
+            spt.Enqueue(start, initialCost);
+            costs[start] = initialCost;
+            predecessors[start] = start;
+
+            while (spt.Count > 0)
+            {
+                V vertex = spt.Dequeue();
+
+                foreach (var edge in AdjacencyList[vertex])
+                {
+                    int cost = costs[vertex] + edge.Cost;
+                    if (!costs.ContainsKey(edge.Neighbor))
+                    {
+                        costs[edge.Neighbor] = cost;
+                        predecessors[edge.Neighbor] = vertex;
+                        spt.Enqueue(edge.Neighbor, cost);
+                    }
+                    else if(cost > costs[edge.Neighbor])
+                    {
+                        spt.Requeue(edge.Neighbor, costs[edge.Neighbor], cost);
+                        costs[edge.Neighbor] = cost;
+                        predecessors[edge.Neighbor] = vertex;
                     }
                 }
             }
@@ -342,13 +375,13 @@ namespace Training.BlunderEp2
     }
 
 
-    class Edge<V> where V : class
+    class Edge<V> where V : IVertex
     {
         public V Vertex { get; }
         public V Neighbor { get; }
-        public double Cost { get; }
+        public int Cost { get; }
 
-        public Edge(V vertex, V neighbor, double cost)
+        public Edge(V vertex, V neighbor, int cost)
         {
             Vertex = vertex;
             Neighbor = neighbor;
@@ -368,6 +401,62 @@ namespace Training.BlunderEp2
         public override int GetHashCode()
         {
             return HashCode.Combine(Vertex, Neighbor);
+        }
+    }
+
+    interface IVertex
+    {
+        int Id { get; set; }
+    }
+
+    class SpeedQueue<V> where V : IVertex
+    {
+        public int Count { get; private set; } = 0;
+        private int _minDistance = 0;
+        private int _maxDistance = 0;
+        private HashSet<V>[] vertices = new HashSet<V>[System.Int16.MaxValue];
+
+        public void Enqueue(V vertex, int distance)
+        {
+            if(vertices[distance] is null)
+                vertices[distance] = new HashSet<V>();
+
+            vertices[distance].Add(vertex);
+
+            if(distance > _maxDistance)
+                _maxDistance = distance;
+
+            Count++;
+        }
+
+        public V Dequeue()
+        {
+            if (Count > 0)
+            {
+                while (_minDistance <= _maxDistance)
+                {
+                    if (vertices[_minDistance] is not null && vertices[_minDistance].Count > 0)
+                    {
+                        var vertex = vertices[_minDistance].First();
+                        vertices[_minDistance].Remove(vertex);
+                        Count--;
+                        return vertex;
+                    }
+                    _minDistance++;
+                }
+            }
+
+            throw new IndexOutOfRangeException();
+        }
+
+        public void Requeue(V vertex, int oldDistance, int newDistance)
+        {
+            if(vertices[oldDistance] is not null)
+            {
+                vertices[oldDistance].Remove(vertex);
+                Count--;
+            }
+            Enqueue(vertex, newDistance);
         }
     }
 }
