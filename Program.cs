@@ -1,4 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-Training.War.Test.Run();
+Training.ShadowsOfTheKnightEp2.Test.Run();
 Console.ReadLine();
